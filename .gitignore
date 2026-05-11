@@ -2,3 +2,6 @@
 *.json
 slack_profile
 .idea
+docs
+docs.index
+docs.pkl

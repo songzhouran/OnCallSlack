@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 import os
 import time
 import random
+from knowledge import load_docs
+from rag_search import search_docs
 
 load_dotenv()
 llm_client = OpenAI(
@@ -12,24 +14,48 @@ llm_client = OpenAI(
 )
 
 CHANNEL_URL = os.getenv("CHANNEL_URL")
-
+DOC_CONTEXT = load_docs()
 processed = set()
 
 
 def ask_ai(text):
 
+    context = search_docs(text)
+
+    print("\nRAG CONTEXT:\n")
+    print(context)
+
     response = llm_client.chat.completions.create(
+
         model="llama-3.3-70b-versatile",
 
         messages=[
+
             {
                 "role": "system",
                 "content":
-                    "You are a concise Slack assistant."
+                    """
+You are an AI on-call Slack assistant.
+
+Use the operational context provided
+to answer accurately.
+
+Keep replies concise.
+"""
             },
+
             {
                 "role": "user",
-                "content": text
+                "content":
+                    f"""
+Relevant operational knowledge:
+
+{context}
+
+Slack message:
+
+{text}
+"""
             }
         ],
 
@@ -158,7 +184,7 @@ with sync_playwright() as p:
                 print("sent")
 
             time.sleep(
-                random.uniform(60, 90)
+                random.uniform(6, 9)
             )
 
         except Exception as e:
